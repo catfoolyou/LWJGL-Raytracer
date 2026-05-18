@@ -59,11 +59,13 @@ public class Main extends ApplicationAdapter {
         shader.setUniformf("u_resolution", screenSize);
         shader.setUniformf("cameraPos", this.cameraPos);
 
-        float[] balls = new float[]{0, 0, -1, 0.5f};
+        float[] balls = new float[]{
+            0, 0, -1, 0.5f,
+            0, -100.5f, -1, 100
+        };
 
+//        shader.setUniformf("objectsInWorld", balls.length);
         shader.setUniform4fv("balls", balls, 0, balls.length);
-//        shader.setUniformf("spherePos", new Vector3(0, 0, -1));
-//        shader.setUniformf("rad", 0.5f);
 
         renderer.setShader(shader);
         renderer.draw(fbo, 0, 0);
