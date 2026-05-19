@@ -40,25 +40,53 @@ vec3 at(Ray r, float t){
     return r.origin + t * r.dir;
 }
 
-bool inRange(float x, float min, float max){
-    float inRange = step(min, x) * step(x, max);
-    return inRange > 0.0;
-}
+//bool inRange(float x, float min, float max){
+//    float inRange = step(min, x) * step(x, max);
+//    return inRange > 0.0;
+//}
+//
+//bool surrounds(float x, float min, float max){
+//    return min < x && x < max; // branching?
+//}
 
-bool surrounds(float x, float min, float max){
-    return min < x && x < max; // branching?
-}
-
-float randomDouble() {
+float random() {
     return fract(sin(dot(vec2(0.5), vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-float randomDouble(float min, float max) {
-    return min + (max-min) * randomDouble();
+float randomInRange(float min, float max) {
+    return min + (max-min) * random();
 }
 
-vec3 sampleSquare(){
-    return vec3(randomDouble() - 0.5, randomDouble() - 0.5, 0);
+//vec3 sampleSquare(){
+//    return vec3(randomDouble() - 0.5, randomDouble() - 0.5, 0);
+//}
+
+vec3 randomVector() {
+    return vec3(random(), random(), random());
+}
+
+vec3 random(float min, float max) {
+    return vec3(randomInRange(min,max), randomInRange(min,max), randomInRange(min,max));
+}
+
+vec3 randomUnitVector() {
+    while (true) {
+        vec3 p = random(-1,1);
+        float lensq = dot(p, p);
+        if (1e-160 < lensq && lensq <= 1){
+            return p / sqrt(lensq);
+        }
+    }
+}
+
+vec3 randomOnHemisphere(vec3 normal) {
+    vec3 onUnitSphere = randomUnitVector();
+    if (dot(onUnitSphere, normal) > 0.0){
+        return onUnitSphere;
+    }
+    else {
+        return -onUnitSphere;
+    }
 }
 
 bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, inout hitRecord rec) {
@@ -91,12 +119,18 @@ bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, ino
     return true;
 }
 
-vec3 rayColor(Ray r){
+vec3 rayColor(Ray r, int bounces){
+    if (bounces <= 0.0){
+        return vec3(0.0);
+    }
+
     hitRecord rec;
     for (int i = 0; i < MAX_OBJECTS; i++) {
        if(i <= objectsInWorld+1){
            if (hitSphere(r, 0.0, infinity, balls[i].xyz, balls[i].w, rec)) {
-               return 0.5 * (rec.normal + vec3(1.0));
+               vec3 direction = randomOnHemisphere(rec.normal);
+               return 0.5 * rayColor(Ray(rec.p, direction), bounces-1);
+//               return 0.5 * (rec.normal + vec3(1.0));
            }
        }
     }
