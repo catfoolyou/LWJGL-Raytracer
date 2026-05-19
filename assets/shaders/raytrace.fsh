@@ -50,8 +50,11 @@ bool surrounds(float x, float min, float max){
     return min < x && x < max; // branching?
 }
 
+float seed = v_texCoords.x * v_texCoords.y;
+
 float random() {
-    return fract(sin(dot(vec2(0.5), vec2(12.9898, 78.233))) * 43758.5453);
+    seed = fract(sin(dot(vec2(seed), vec2(12.9898, 78.233))) * 43758.5453);
+    return seed;
 }
 
 float randomInRange(float min, float max) {
@@ -62,22 +65,12 @@ vec3 randomVector() {
     return vec3(random(), random(), random());
 }
 
-vec3 random(float min, float max) {
+vec3 randomVectorInRange(float min, float max) {
     return vec3(randomInRange(min,max), randomInRange(min,max), randomInRange(min,max));
 }
 
-vec3 randomUnitVector() {
-    while (true) {
-        vec3 p = random(-1,1);
-        float lensq = dot(p, p);
-        if (1e-160 < lensq && lensq <= 1){
-            return p / sqrt(lensq);
-        }
-    }
-}
-
 vec3 randomOnHemisphere(vec3 normal) {
-    vec3 onUnitSphere = randomUnitVector();
+    vec3 onUnitSphere = randomVectorInRange(-1.0, 1.0);
     if (dot(onUnitSphere, normal) > 0.0){
         return onUnitSphere;
     }
@@ -120,19 +113,27 @@ vec3 rayColor(Ray r){
     hitRecord rec;
     vec3 col = vec3(1.0);
 
-    for (int j = 0; j < MAX_OBJECTS; j++) {
-        if(j <= objectsInWorld+1){
-            if (hitSphere(r, 0.0, infinity, balls[j].xyz, balls[j].w, rec)) {
-//                vec3 direction = randomOnHemisphere(rec.normal);
-//                r.origin = rec.point;
-//                r.dir = direction;
-//                col *= 0.5;
-                return 0.5 * (rec.normal + vec3(1.0));
+    bool hit = false;
+
+    for(int i = 0; i < MAX_BOUNCES; i++){
+        hit = false;
+        for (int j = 0; j < MAX_OBJECTS; j++) {
+            if (j <= objectsInWorld+1){
+                if (hitSphere(r, 0.0001, infinity, balls[j].xyz, balls[j].w, rec)) {
+                    hit = true;
+                }
             }
+        }
+        if(hit){
+            vec3 direction = randomOnHemisphere(rec.normal);
+            r.origin = rec.point;
+            r.dir = direction;
+            col *= 0.5;
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
-            return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 1.0);
+            vec3 skyColor = (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 1.0);
+            return col * skyColor;
         }
     }
 
