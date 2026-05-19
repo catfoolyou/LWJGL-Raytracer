@@ -17,6 +17,7 @@ uniform vec3 rayOrigin;
 uniform vec3 rayDir;
 
 #define MAX_OBJECTS 128
+#define MAX_BOUNCES 4
 
 uniform int objectsInWorld;
 uniform vec4 balls[MAX_OBJECTS];
@@ -30,7 +31,7 @@ struct Ray{
 };
 
 struct hitRecord{
-    vec3 p;
+    vec3 point;
     vec3 normal;
     float t;
     bool frontFace;
@@ -106,8 +107,8 @@ bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, ino
     }
 
     rec.t = root;
-    rec.p = at(r, rec.t);
-    vec3 outwardNormal = (rec.p - center) / radius;
+    rec.point = at(r, rec.t);
+    vec3 outwardNormal = (rec.point - center) / radius;
 
     rec.frontFace = dot(r.dir, outwardNormal) < 0;
     rec.normal = rec.frontFace ? outwardNormal : -outwardNormal;
@@ -117,16 +118,25 @@ bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, ino
 
 vec3 rayColor(Ray r){
     hitRecord rec;
-    for (int i = 0; i < MAX_OBJECTS; i++) {
-        if(i <= objectsInWorld+1){
-            if (hitSphere(r, 0.0, infinity, balls[i].xyz, balls[i].w, rec)) {
+    vec3 col = vec3(1.0);
+
+    for (int j = 0; j < MAX_OBJECTS; j++) {
+        if(j <= objectsInWorld+1){
+            if (hitSphere(r, 0.0, infinity, balls[j].xyz, balls[j].w, rec)) {
+//                vec3 direction = randomOnHemisphere(rec.normal);
+//                r.origin = rec.point;
+//                r.dir = direction;
+//                col *= 0.5;
                 return 0.5 * (rec.normal + vec3(1.0));
             }
         }
+        else{
+            float a = 0.5 * (r.dir.y + 1.0);
+            return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 1.0);
+        }
     }
 
-    float a = 0.5 * (r.dir.y + 1.0);
-    return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 1.0);
+    return col;
 }
 
 void main() {
