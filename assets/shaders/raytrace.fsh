@@ -16,13 +16,24 @@ uniform vec3 cameraPos;
 uniform vec3 rayOrigin;
 uniform vec3 rayDir;
 
-uniform vec4 balls[];
+#define MAX_OBJECTS 128
+
+uniform int objectsInWorld;
+uniform vec4 balls[MAX_OBJECTS];
 
 const float pi = 3.1415926535897932385;
+const float infinity = uintBitsToFloat(0x7F800000);
 
 struct Ray{
     vec3 origin;
     vec3 dir;
+};
+
+struct hitRecord{
+    vec3 p;
+    vec3 normal;
+    float t;
+    bool frontFace;
 };
 
 vec3 at(Ray r, float t){
@@ -43,11 +54,44 @@ float hitSphere(vec3 center, float radius, Ray r) {
     }
 }
 
+bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, inout hitRecord rec) {
+    vec3 oc = center - r.origin;
+    float a = dot(r.dir, r.dir);
+    float halfB = dot(r.dir, oc);
+    float c = dot(oc, oc) - radius * radius;
+    float discriminant = halfB * halfB - a * c;
+
+    if (discriminant < 0){
+        return false;
+    }
+
+    float sqrtd = sqrt(discriminant);
+
+    float root = (halfB - sqrtd) / a;
+    if (root <= rayMin || rayMax <= root) {
+        root = (halfB + sqrtd) / a;
+        if (root <= rayMin || rayMax <= root)
+        return false;
+    }
+
+    rec.t = root;
+    rec.p = at(r, rec.t);
+    vec3 outwardNormal = (rec.p - center) / radius;
+
+    rec.frontFace = dot(r.dir, outwardNormal) < 0;
+    rec.normal = rec.frontFace ? outwardNormal : -outwardNormal;
+
+    return true;
+}
+
 vec3 rayColor(Ray r){
-    float t = hitSphere(balls[0].xyz, balls[0].w, r);
-    if (t > 0.0) {
-        vec3 N = normalize(at(r, t) - vec3(0, 0, -1));
-        return 0.5 * vec3(N.x + 1.0, N.y + 1.0, N.z + 1.0);
+    hitRecord rec;
+    for (int i = 0; i < MAX_OBJECTS; i++) {
+       if(i <= objectsInWorld+1){
+           if (hitSphere(r, 0.0, infinity, balls[i].xyz, balls[i].w, rec)) {
+               return 0.5 * (rec.normal + vec3(1.0));
+           }
+       }
     }
 
     float a = 0.5 * (r.dir.y + 1.0);

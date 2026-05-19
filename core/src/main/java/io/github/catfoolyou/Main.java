@@ -64,7 +64,7 @@ public class Main extends ApplicationAdapter {
             0, -100.5f, -1, 100
         };
 
-//        shader.setUniformf("objectsInWorld", balls.length);
+        shader.setUniformf("objectsInWorld", balls.length/4);
         shader.setUniform4fv("balls", balls, 0, balls.length);
 
         renderer.setShader(shader);
