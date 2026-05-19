@@ -40,18 +40,25 @@ vec3 at(Ray r, float t){
     return r.origin + t * r.dir;
 }
 
-float hitSphere(vec3 center, float radius, Ray r) {
-    vec3 oc = center - r.origin;
-    float a = dot(r.dir, r.dir);
-    float h = dot(r.dir, oc);
-    float c = dot(oc, oc) - radius * radius;
-    float discriminant = h * h - a * c;
+bool inRange(float x, float min, float max){
+    float inRange = step(min, x) * step(x, max);
+    return inRange > 0.0;
+}
 
-    if (discriminant < 0.0) {
-        return -1.0;
-    } else {
-        return(h - sqrt(discriminant)) / a;
-    }
+bool surrounds(float x, float min, float max){
+    return min < x && x < max; // branching?
+}
+
+float randomDouble() {
+    return fract(sin(dot(vec2(0.5), vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+float randomDouble(float min, float max) {
+    return min + (max-min) * randomDouble();
+}
+
+vec3 sampleSquare(){
+    return vec3(randomDouble() - 0.5, randomDouble() - 0.5, 0);
 }
 
 bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, inout hitRecord rec) {
@@ -102,8 +109,8 @@ void main() {
     vec2 uv = v_texCoords * 2.0 - 1.0;
     uv.x *= u_resolution.x/u_resolution.y;
 
-    vec3 ray_direction = normalize(vec3(uv.x, -uv.y, -1.0));
-    Ray r = Ray(cameraPos, ray_direction);
+    vec3 rayDirection = normalize(vec3(uv.x, -uv.y, -1.0));
+    Ray r = Ray(cameraPos, rayDirection);
 
     vec3 col = rayColor(r);
 

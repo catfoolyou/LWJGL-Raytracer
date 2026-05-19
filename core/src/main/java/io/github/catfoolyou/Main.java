@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Sphere;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -64,7 +63,7 @@ public class Main extends ApplicationAdapter {
             0, -100.5f, -1, 100
         };
 
-        shader.setUniformf("objectsInWorld", balls.length/4);
+        shader.setUniformi("objectsInWorld", balls.length /4);
         shader.setUniform4fv("balls", balls, 0, balls.length);
 
         renderer.setShader(shader);
@@ -72,6 +71,8 @@ public class Main extends ApplicationAdapter {
         renderer.setShader(null);
 
         renderer.end();
+
+        Gdx.graphics.setTitle("LWJGL GPU raytracer - FPS: " + Gdx.graphics.getFramesPerSecond());
     }
 
     @Override
@@ -82,7 +83,6 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         renderer.dispose();
-//        model.dispose();
         shader.dispose();
     }
 }
