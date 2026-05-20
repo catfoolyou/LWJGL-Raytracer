@@ -141,11 +141,21 @@ vec3 rayColor(Ray r){
         if(hit){
             Material mat = materials[rec.materialIndex];
             vec3 albedo = mat.albedo.rgb;
-            int matType = int(mat.albedo.w);
+            int type = int(mat.albedo.w);
 
             r.origin = rec.point;
-            r.dir = rec.normal + randomUnitVector3D();
-            col *= albedo;
+            if(type == 0){
+                r.dir = rec.normal + randomUnitVector3D();
+                col *= albedo;
+            }
+            if(type == 1){
+                r.dir = reflect(r.dir, rec.normal);
+                col *= albedo;
+            }
+//            if(matType == 2){
+//                r.dir = refract();
+//                col *= albedo;
+//            }
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
