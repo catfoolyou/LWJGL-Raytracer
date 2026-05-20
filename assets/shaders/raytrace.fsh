@@ -23,7 +23,6 @@ uniform int u_frameCount;
 #define MAX_BOUNCES 4
 
 uniform int objectsInWorld;
-uniform vec4 balls[MAX_OBJECTS];
 
 const float pi = 3.1415926535897932385;
 const float infinity = uintBitsToFloat(0x7F800000);
@@ -38,6 +37,25 @@ struct hitRecord{
     vec3 normal;
     float t;
     bool frontFace;
+    int materialIndex;
+};
+
+struct Sphere {
+    vec4 centerAndRadius;
+    vec4 materialData;
+};
+
+struct Material {
+    vec4 albedo;
+    vec4 placeholder;
+};
+
+layout(std430, binding = 0) readonly buffer SphereBuffer {
+    Sphere spheres[];
+};
+
+layout(std430, binding = 1) readonly buffer MaterialBuffer {
+    Material materials[];
 };
 
 vec3 at(Ray r, float t){
@@ -111,15 +129,23 @@ vec3 rayColor(Ray r){
         hit = false;
         for (int j = 0; j < MAX_OBJECTS; j++) {
             if (j <= objectsInWorld+1){
-                if (hitSphere(r, 0.01, infinity, balls[j].xyz, balls[j].w, rec)) {
+                vec3 spherePos = spheres[j].centerAndRadius.xyz;
+                float radius = spheres[j].centerAndRadius.w;
+
+                if (hitSphere(r, 0.01, infinity, spherePos, radius, rec)) {
                     hit = true;
+                    rec.materialIndex = int(spheres[j].materialData.x);
                 }
             }
         }
         if(hit){
+            Material mat = materials[rec.materialIndex];
+            vec3 albedo = mat.albedo.rgb;
+            int matType = int(mat.albedo.w);
+
             r.origin = rec.point;
             r.dir = rec.normal + randomUnitVector3D();
-            col *= 0.25;
+            col *= albedo;
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
