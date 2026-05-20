@@ -64,29 +64,11 @@ vec2 hash2(vec2 p) {
     return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
 }
 
-float randomInRange(float min, float max) {
-    return min + (max-min) * random();
-}
-
 vec3 randomUnitVector3D() {
-    float z = random() * 2.0 - 1.0;          // Range [-1, 1]
-    float a = random() * 6.28318530718; // Range [0, 2PI]
+    float z = random() * 2.0 - 1.0;
+    float a = random() * 6.28318530718;
     float r = sqrt(1.0 - z * z);
     return vec3(r * cos(a), r * sin(a), z);
-}
-
-vec3 randomVectorInRange(float min, float max) {
-    return vec3(randomInRange(min,max), randomInRange(min,max), randomInRange(min,max));
-}
-
-vec3 randomOnHemisphere(vec3 normal) {
-    vec3 onUnitSphere = randomVectorInRange(-1.0, 1.0);
-    if (dot(onUnitSphere, normal) > 0.0){
-        return onUnitSphere;
-    }
-    else {
-        return -onUnitSphere;
-    }
 }
 
 bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, inout hitRecord rec) {
@@ -135,10 +117,9 @@ vec3 rayColor(Ray r){
             }
         }
         if(hit){
-            vec3 direction = randomOnHemisphere(rec.normal);
             r.origin = rec.point;
             r.dir = rec.normal + randomUnitVector3D();
-            col *= 0.5;
+            col *= 0.25;
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
@@ -174,5 +155,5 @@ void main() {
         col += rayColor(r);
     }
 
-    fragColor = vec4(col / 4.0, 1.0);
+    fragColor = vec4(sqrt(col / 4.0), 1.0);
 }
