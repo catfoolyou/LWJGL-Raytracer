@@ -68,8 +68,11 @@ float randomInRange(float min, float max) {
     return min + (max-min) * random();
 }
 
-vec3 randomVector() {
-    return vec3(random(), random(), random());
+vec3 randomUnitVector3D() {
+    float z = random() * 2.0 - 1.0;          // Range [-1, 1]
+    float a = random() * 6.28318530718; // Range [0, 2PI]
+    float r = sqrt(1.0 - z * z);
+    return vec3(r * cos(a), r * sin(a), z);
 }
 
 vec3 randomVectorInRange(float min, float max) {
@@ -134,8 +137,8 @@ vec3 rayColor(Ray r){
         if(hit){
             vec3 direction = randomOnHemisphere(rec.normal);
             r.origin = rec.point;
-            r.dir = direction;
-            col *= 0.35;
+            r.dir = rec.normal + randomUnitVector3D();
+            col *= 0.5;
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
