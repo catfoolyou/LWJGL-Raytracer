@@ -16,6 +16,9 @@ uniform vec3 cameraPos;
 uniform vec3 rayOrigin;
 uniform vec3 rayDir;
 
+uniform sampler2D u_previousFrame;
+uniform int u_frameCount;
+
 #define MAX_OBJECTS 128
 #define MAX_BOUNCES 4
 
@@ -50,11 +53,15 @@ bool surrounds(float x, float min, float max){
     return min < x && x < max; // branching?
 }
 
-float seed = v_texCoords.x * v_texCoords.y;
+float seed = v_texCoords.x * v_texCoords.y + float(u_frameCount) * 0.01;
 
 float random() {
     seed = fract(sin(dot(vec2(seed), vec2(12.9898, 78.233))) * 43758.5453);
     return seed;
+}
+
+vec2 hash2(vec2 p) {
+    return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
 }
 
 float randomInRange(float min, float max) {
@@ -119,7 +126,7 @@ vec3 rayColor(Ray r){
         hit = false;
         for (int j = 0; j < MAX_OBJECTS; j++) {
             if (j <= objectsInWorld+1){
-                if (hitSphere(r, 0.0001, infinity, balls[j].xyz, balls[j].w, rec)) {
+                if (hitSphere(r, 0.01, infinity, balls[j].xyz, balls[j].w, rec)) {
                     hit = true;
                 }
             }
@@ -128,7 +135,7 @@ vec3 rayColor(Ray r){
             vec3 direction = randomOnHemisphere(rec.normal);
             r.origin = rec.point;
             r.dir = direction;
-            col *= 0.5;
+            col *= 0.35;
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
@@ -143,11 +150,26 @@ vec3 rayColor(Ray r){
 void main() {
     vec2 uv = v_texCoords * 2.0 - 1.0;
     uv.x *= u_resolution.x/u_resolution.y;
+    uv.y = -uv.y;
 
-    vec3 rayDirection = normalize(vec3(uv.x, -uv.y, -1.0));
-    Ray r = Ray(cameraPos, rayDirection);
+    vec3 col = vec3(0.0);
 
-    vec3 col = rayColor(r);
+    vec2 samples[4] = vec2[](
+        vec2(-0.25, -0.75),
+        vec2(0.75, -0.25),
+        vec2(-0.75, 0.25),
+        vec2(0.25, 0.75)
+    );
 
-    fragColor = vec4(col, 1.0);
+    for (int i = 0; i < 4; i++) {
+        vec2 pixelOffset = (samples[i] + hash2(gl_FragCoord.xy + float(i))) / u_resolution.xy;
+        vec2 currentUV = uv + pixelOffset;
+
+        vec3 rayDirection = normalize(vec3(currentUV, -1.0));
+        Ray r = Ray(cameraPos, rayDirection);
+
+        col += rayColor(r);
+    }
+
+    fragColor = vec4(col / 4.0, 1.0);
 }

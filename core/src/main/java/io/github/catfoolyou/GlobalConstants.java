@@ -5,4 +5,6 @@ public class GlobalConstants {
 
     public static final int WIDTH = 800;
     public static final int HEIGHT = Math.max((int) (WIDTH / aspectRatio), 1);
+
+    public static final boolean doDoubleBufferization = false;
 }
