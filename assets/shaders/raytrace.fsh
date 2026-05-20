@@ -20,7 +20,7 @@ uniform sampler2D u_previousFrame;
 uniform int u_frameCount;
 
 #define MAX_OBJECTS 128
-#define MAX_BOUNCES 4
+#define MAX_BOUNCES 6
 #define SAMPLES 6
 
 uniform int objectsInWorld;
@@ -166,7 +166,7 @@ vec3 rayColor(Ray r){
                 float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
                 float ri = rec.frontFace ? (1.0/data) : data;
 
-                if(ri * sinTheta > 1.0){
+                if(ri * sinTheta > 1.0 || reflectance(cosTheta, ri) > random()){
                     r.dir = reflect(r.dir, rec.normal);
                 }
                 else{
