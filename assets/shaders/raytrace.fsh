@@ -21,6 +21,7 @@ uniform int u_frameCount;
 
 #define MAX_OBJECTS 128
 #define MAX_BOUNCES 4
+#define SAMPLES 6
 
 uniform int objectsInWorld;
 
@@ -47,7 +48,7 @@ struct Sphere {
 
 struct Material {
     vec4 albedo;
-    vec4 placeholder;
+    vec4 data;
 };
 
 layout(std430, binding = 0) readonly buffer SphereBuffer {
@@ -87,6 +88,12 @@ vec3 randomUnitVector3D() {
     float a = random() * 6.28318530718;
     float r = sqrt(1.0 - z * z);
     return vec3(r * cos(a), r * sin(a), z);
+}
+
+float reflectance(float cosine, float ri) {
+    float r0 = (1.0 - ri) / (1.0 + ri);
+    r0 = r0 * r0;
+    return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);
 }
 
 bool hitSphere(Ray r, float rayMin, float rayMax, vec3 center, float radius, inout hitRecord rec) {
@@ -143,19 +150,31 @@ vec3 rayColor(Ray r){
             vec3 albedo = mat.albedo.rgb;
             int type = int(mat.albedo.w);
 
+            float data = mat.data.x; // refraction or reflection index, ignored for lambertian materials
+
             r.origin = rec.point;
             if(type == 0){
                 r.dir = rec.normal + randomUnitVector3D();
                 col *= albedo;
             }
             if(type == 1){
-                r.dir = reflect(r.dir, rec.normal);
+                r.dir = reflect(r.dir, rec.normal) + (data * randomUnitVector3D());
                 col *= albedo;
             }
-//            if(matType == 2){
-//                r.dir = refract();
-//                col *= albedo;
-//            }
+            if(type == 2){
+                float cosTheta = min(dot(-r.dir, rec.normal), 1.0);
+                float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+                float ri = rec.frontFace ? (1.0/data) : data;
+
+                if(ri * sinTheta > 1.0){
+                    r.dir = reflect(r.dir, rec.normal);
+                }
+                else{
+                    r.dir = refract(r.dir, rec.normal, ri);
+                }
+
+                col *= vec3(1.0);
+            }
         }
         else{
             float a = 0.5 * (r.dir.y + 1.0);
@@ -181,15 +200,15 @@ void main() {
         vec2(0.25, 0.75)
     );
 
-    for (int i = 0; i < 4; i++) {
-        vec2 pixelOffset = (samples[i] + hash2(gl_FragCoord.xy + float(i))) / u_resolution.xy;
-        vec2 currentUV = uv + pixelOffset;
+    for (int i = 0; i < SAMPLES; i++) {
+//        vec2 pixelOffset = (samples[i] + hash2(gl_FragCoord.xy + float(i))) / u_resolution.xy;
+//        vec2 currentUV = uv + pixelOffset;
 
-        vec3 rayDirection = normalize(vec3(currentUV, -1.0));
+        vec3 rayDirection = normalize(vec3(uv, -1.0));
         Ray r = Ray(cameraPos, rayDirection);
 
         col += rayColor(r);
     }
 
-    fragColor = vec4(sqrt(col / 4.0), 1.0);
+    fragColor = vec4(sqrt(col / SAMPLES), 1.0);
 }

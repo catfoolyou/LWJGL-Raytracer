@@ -63,7 +63,7 @@ public class World {
         FloatBuffer buf = ByteBuffer.allocateDirect((materials.size() * 8) * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         for (Material mat : materials) {
             buf.put(mat.getColor().x).put(mat.getColor().y).put(mat.getColor().z).put(mat.getType());
-            buf.put(0).put(0).put(0).put(0);
+            buf.put(mat.getBits()).put(0).put(0).put(0);
         }
         buf.flip();
         return buf;

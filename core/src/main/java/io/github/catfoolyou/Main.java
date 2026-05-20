@@ -60,10 +60,10 @@ public class Main extends ApplicationAdapter {
 
     private void initWorld(){
         this.world = new World();
-        world.getSphereSSBO().add(new Sphere(0, -100.5f, -1, 100, new Material(new Vector3(0.8f, 0.8f, 0.0f), Material.materialType.LAMBERTIAN)));
-        world.getSphereSSBO().add(new Sphere(0, 0, -1, 0.5f, new Material(new Vector3(0.1f, 0.2f, 0.5f), Material.materialType.LAMBERTIAN)));
-        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.METAL)));
-        world.getSphereSSBO().add(new Sphere(1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.6f, 0.2f), Material.materialType.METAL)));
+        world.getSphereSSBO().add(new Sphere(0, -100.5f, -1, 100, new Material(new Vector3(0.8f, 0.8f, 0.0f), Material.materialType.LAMBERTIAN, 0)));
+        world.getSphereSSBO().add(new Sphere(0, 0, -1, 0.5f, new Material(new Vector3(0.1f, 0.2f, 0.5f), Material.materialType.LAMBERTIAN, 0)));
+        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.DIELECTRIC, 1.0f/1.33f)));
+        world.getSphereSSBO().add(new Sphere(1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.6f, 0.2f), Material.materialType.METAL, 0f)));
 
         world.sortSSBOs();
     }
