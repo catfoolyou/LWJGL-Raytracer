@@ -16,8 +16,8 @@ uniform vec3 cameraPos;
 uniform vec3 rayOrigin;
 uniform vec3 rayDir;
 
-uniform sampler2D u_previousFrame;
-uniform int u_frameCount;
+uniform vec3 lookAt;
+uniform vec3 up;
 
 #define MAX_OBJECTS 128
 #define MAX_BOUNCES 6
@@ -72,7 +72,7 @@ bool surrounds(float x, float min, float max){
     return min < x && x < max; // branching?
 }
 
-float seed = v_texCoords.x * v_texCoords.y + float(u_frameCount) * 0.01;
+float seed = v_texCoords.x * v_texCoords.y + 1.0 * 0.01;
 
 float random() {
     seed = fract(sin(dot(vec2(seed), vec2(12.9898, 78.233))) * 43758.5453);
@@ -204,7 +204,11 @@ void main() {
 //        vec2 pixelOffset = (samples[i] + hash2(gl_FragCoord.xy + float(i))) / u_resolution.xy;
 //        vec2 currentUV = uv + pixelOffset;
 
-        vec3 rayDirection = normalize(vec3(uv, -1.0));
+        vec3 w = cameraPos - lookAt;
+        vec3 u = cross(up, w);
+        vec3 v = cross(w, u);
+
+        vec3 rayDirection = normalize(uv.x * u + uv.y * v - w);
         Ray r = Ray(cameraPos, rayDirection);
 
         col += rayColor(r);

@@ -30,8 +30,6 @@ public class Main extends ApplicationAdapter {
     int sphereBufferID;
     int matBufferID;
 
-    private int frameCount;
-
     private World world;
 
     @Override
@@ -62,7 +60,7 @@ public class Main extends ApplicationAdapter {
         this.world = new World();
         world.getSphereSSBO().add(new Sphere(0, -100.5f, -1, 100, new Material(new Vector3(0.8f, 0.8f, 0.0f), Material.materialType.LAMBERTIAN, 0)));
         world.getSphereSSBO().add(new Sphere(0, 0, -1, 0.5f, new Material(new Vector3(0.1f, 0.2f, 0.5f), Material.materialType.LAMBERTIAN, 0)));
-        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.DIELECTRIC, 1.0f/1.33f)));
+        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.DIELECTRIC, 0.4f)));
         world.getSphereSSBO().add(new Sphere(1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.6f, 0.2f), Material.materialType.METAL, 0f)));
 
         world.sortSSBOs();
@@ -88,24 +86,27 @@ public class Main extends ApplicationAdapter {
 //        MemoryUtil.memFree(materialBuffer);
     }
 
+    private void updateCameraTransform(){
+        shader.setUniformf("cameraPos", world.getCameraPos());
+        shader.setUniformf("lookAt", world.lookAt());
+        shader.setUniformf("up", world.up());
+    }
+
     FrameBuffer temp;
     @Override
     public void render() {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        world.handleInput();
+        world.handleInput(Gdx.graphics.getDeltaTime());
 
         if(GlobalConstants.doDoubleBufferization) {
             renderer.begin();
             writeBuffer.begin();
             shader.bind();
             shader.setUniformf("u_resolution", screenSize);
-            shader.setUniformf("cameraPos", world.getCameraPos());
 
-            frameCount++; // must be rest when camera is moved
-            shader.setUniformi("u_frameCount", frameCount);
-            shader.setUniformi("u_previousFrame", 1);
+            updateCameraTransform();
             passSSBOs();
 
             readBuffer.getColorBufferTexture().bind(1);
@@ -125,10 +126,8 @@ public class Main extends ApplicationAdapter {
 
             shader.bind();
             shader.setUniformf("u_resolution", screenSize);
-            shader.setUniformf("cameraPos", world.getCameraPos());
 
-            shader.setUniformi("u_frameCount", 1);
-
+            updateCameraTransform();
             passSSBOs();
 
             renderer.setShader(shader);
