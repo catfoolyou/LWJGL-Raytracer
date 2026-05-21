@@ -79,10 +79,6 @@ float random() {
     return seed;
 }
 
-vec2 hash2(vec2 p) {
-    return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
-}
-
 vec3 randomUnitVector3D() {
     float z = random() * 2.0 - 1.0;
     float a = random() * 6.28318530718;
@@ -134,13 +130,15 @@ vec3 rayColor(Ray r){
 
     for(int i = 0; i < MAX_BOUNCES; i++){
         hit = false;
+        float closestSoFar = infinity;
         for (int j = 0; j < MAX_OBJECTS; j++) {
             if (j <= objectsInWorld+1){
                 vec3 spherePos = spheres[j].centerAndRadius.xyz;
                 float radius = spheres[j].centerAndRadius.w;
 
-                if (hitSphere(r, 0.01, infinity, spherePos, radius, rec)) {
+                if (hitSphere(r, 0.01, closestSoFar, spherePos, radius, rec)) {
                     hit = true;
+                    closestSoFar = rec.t;
                     rec.materialIndex = int(spheres[j].materialData.x);
                 }
             }

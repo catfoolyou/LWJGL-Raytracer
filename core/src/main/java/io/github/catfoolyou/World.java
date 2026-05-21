@@ -17,6 +17,8 @@ public class World {
     private final Camera simulatedCamera = new PerspectiveCamera(67f, GlobalConstants.WIDTH, GlobalConstants.HEIGHT);
     private final Vector3 velocity = new Vector3();
 
+    private boolean paused = false;
+
     private final List<Sphere> balls = new ArrayList<>();
 //    private final List<Quaternion> quads = new ArrayList<>();
     private final List<Material> materials = new ArrayList<>();
@@ -31,36 +33,47 @@ public class World {
 
     float yaw = -90f;
     float pitch = 0f;
+    Vector3 forward = new Vector3();
+    Vector3 right = new Vector3();
 
     public void handleInput(float delta){
-        if(Gdx.input.isKeyPressed(Input.Keys.W)){
-            velocity.z -= delta;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.S)){
-            velocity.z += delta;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.A)){
-            velocity.x -= delta;
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.D)){
-            velocity.x += delta;
+        if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
+            paused = !paused;
         }
 
-        simulatedCamera.position.add(velocity);
-        velocity.scl(0.5f);
+        Gdx.input.setCursorCatched(!paused);
 
-        Gdx.input.setCursorCatched(!Gdx.input.isKeyPressed(Input.Keys.ESCAPE));
+        if(!paused){
+            float sensitivity = 0.2f;
 
-        float sensitivity = 0.2f;
+            yaw += Gdx.input.getDeltaX() * sensitivity;
+            pitch -= Gdx.input.getDeltaY() * sensitivity;
+            pitch = MathUtils.clamp(pitch, -89.9f, 89.9f);
 
-        yaw += Gdx.input.getDeltaX() * sensitivity;
-        pitch -= Gdx.input.getDeltaY() * sensitivity;
-        pitch = MathUtils.clamp(pitch, -89.9f, 89.9f);
+            float yawRad = MathUtils.degreesToRadians * yaw;
+            float pitchRad = MathUtils.degreesToRadians * pitch;
 
-        float yawRad = MathUtils.degreesToRadians * yaw;
-        float pitchRad = MathUtils.degreesToRadians * pitch;
+            simulatedCamera.direction.set(new Vector3(MathUtils.cos(pitchRad) * MathUtils.cos(yawRad), MathUtils.sin(pitchRad), MathUtils.cos(pitchRad) * MathUtils.sin(yawRad)).nor());
 
-        simulatedCamera.direction.set(new Vector3(MathUtils.cos(pitchRad) * MathUtils.cos(yawRad), MathUtils.sin(pitchRad), MathUtils.cos(pitchRad) * MathUtils.sin(yawRad)).nor());
+            forward.set(MathUtils.cos(pitchRad) * MathUtils.cos(yawRad), 0, MathUtils.cos(pitchRad) * MathUtils.sin(yawRad)).nor();
+            right = forward.cpy().crs(Vector3.Y).nor();
+
+            if(Gdx.input.isKeyPressed(Input.Keys.W)){
+                velocity.add(forward.cpy().scl(delta));
+            }
+            if(Gdx.input.isKeyPressed(Input.Keys.S)){
+                velocity.add(forward.cpy().scl(-delta));
+            }
+            if(Gdx.input.isKeyPressed(Input.Keys.A)){
+                velocity.add(right.cpy().scl(-delta));
+            }
+            if(Gdx.input.isKeyPressed(Input.Keys.D)){
+                velocity.add(right.cpy().scl(delta));
+            }
+
+            simulatedCamera.position.add(velocity);
+            velocity.scl(0.5f);
+        }
     }
 
     public Vector3 getCameraPos() {
