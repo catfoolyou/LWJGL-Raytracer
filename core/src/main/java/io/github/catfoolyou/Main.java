@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -60,8 +61,33 @@ public class Main extends ApplicationAdapter {
         this.world = new World();
         world.getSphereSSBO().add(new Sphere(0, -100.5f, -1, 100, new Material(new Vector3(0.8f, 0.8f, 0.0f), Material.materialType.LAMBERTIAN, 0)));
         world.getSphereSSBO().add(new Sphere(0, 0, -1, 0.5f, new Material(new Vector3(0.1f, 0.2f, 0.5f), Material.materialType.LAMBERTIAN, 0)));
-        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.DIELECTRIC, 0.4f)));
+        world.getSphereSSBO().add(new Sphere(-1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.8f, 0.8f), Material.materialType.DIELECTRIC, 1.5f)));
         world.getSphereSSBO().add(new Sphere(1, 0, -1, 0.5f, new Material(new Vector3(0.8f, 0.6f, 0.2f), Material.materialType.METAL, 0f)));
+
+//        world.getSphereSSBO().add(new Sphere(0, -1000, 0, 1000, new Material(new Vector3(0.5f, 0.5f, 0.5f), Material.materialType.LAMBERTIAN, 0)));
+//
+//        world.getSphereSSBO().add(new Sphere(0, 1, 0, 1, new Material(new Vector3(0.5f, 0.5f, 0.5f), Material.materialType.DIELECTRIC, 1.5f)));
+//        world.getSphereSSBO().add(new Sphere(-4, 1, 0, 1, new Material(new Vector3(0.4f, 0.2f, 0.1f), Material.materialType.LAMBERTIAN, 0)));
+//        world.getSphereSSBO().add(new Sphere(4, 1, 0, 1, new Material(new Vector3(0.7f, 0.6f, 0.5f), Material.materialType.METAL, 0)));
+//
+//        for (int i = -11; i < 11; i++) {
+//            for (int j = -11; j < 11; j++) {
+//                float rng = (float) Math.random();
+//                Vector3 center = new Vector3((float) (i + 0.9f*Math.random()), 0.2f, (float) (j + 0.9f*Math.random()));
+//
+//                if(center.cpy().sub(new Vector3(4, 0.2f, 0)).len() > 0.9f){
+//                    if(rng < 0.8f){
+//                        world.getSphereSSBO().add(new Sphere(center, 0.2f, new Material(new Vector3((float) Math.random(), (float) Math.random(), (float) Math.random()), Material.materialType.LAMBERTIAN, 0)));
+//                    }
+//                    if(rng < 0.95f){
+//                        world.getSphereSSBO().add(new Sphere(center, 0.2f, new Material(new Vector3(MathUtils.random(0.5f, 1), MathUtils.random(0.5f, 1), MathUtils.random(0.5f, 1)), Material.materialType.METAL, MathUtils.random(0, 0.5f))));
+//                    }
+//                    else {
+//                        world.getSphereSSBO().add(new Sphere(center, 0.2f, new Material(new Vector3(0.5f, 0.5f, 0.5f), Material.materialType.DIELECTRIC, 1.5f)));
+//                    }
+//                }
+//            }
+//        }
 
         world.sortSSBOs();
     }
